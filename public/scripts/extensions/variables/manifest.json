@@ -1,0 +1,11 @@
+{
+    "display_name": "Variables",
+    "loading_order": 2,
+    "requires": [],
+    "optional": [],
+    "js": "index.js",
+    "css": "",
+    "author": "IkariDev, Keij",
+    "version": "1.2.1",
+    "homePage": "https://github.com/SillyTavern/SillyTavern"
+}

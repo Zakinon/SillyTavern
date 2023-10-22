@@ -1670,6 +1670,21 @@ function substituteParams(content, _name1, _name2, _original, _group) {
         return '';
     }
 
+    //// register Variable extension macros: 
+
+    // Variable substitute needs to always be directly on top!
+    content = content.replace(/\[\[var:\s*"([^"]+)"\s*\]\]/gi, (_, variable) => {
+        variable = getVariable(_, variable);
+        return variable;
+    });
+
+    content = content.replace(/\[\[setvar:\s*"([^"]+)"\s*\/\s*"([^"]+)"\]\]/gi, (_, varname, vartext) => {
+        registerVariable(varname, vartext);
+        return "";
+    });
+
+    /////
+
     // Replace {{original}} with the original message
     // Note: only replace the first instance of {{original}}
     // This will hopefully prevent the abuse
@@ -1710,6 +1725,39 @@ function substituteParams(content, _name1, _name2, _original, _group) {
     content = bannedWordsReplace(content);
     return content;
 }
+
+/*+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+             Variable Extension related stuff
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++*/
+
+// For logging purposes:
+function VAR_LOG_PREFIX(f){ return `<Variables extension> <script.js / ${f}>: ` };
+
+function registerVariable(varname, vartext) {
+    const sanitizedName = varname.replace(/\s/g, '_');
+    extension_settings.variables_extension.tmp_vars[sanitizedName] = vartext;
+    if (extension_settings.variables_extension.saved_vars[varname] !== undefined){
+        extension_settings.variables_extension.saved_vars[varname] = extension_settings.variables_extension.tmp_vars[varname];
+        console.debug(VAR_LOG_PREFIX("registerVariable"), `${sanitizedName} is saved, saved variable was updated in saved_vars`);
+    }
+    saveSettingsDebounced();
+    console.debug(VAR_LOG_PREFIX("registerVariable"), `${sanitizedName} variable was registered into tmp_vars`);
+}
+
+function getVariable(_, variable) {
+    const sanitizedVariable = variable.replace(/\s/g, '_');
+    const foundVariable = substituteParams(extension_settings.variables_extension.tmp_vars[sanitizedVariable]);
+    
+    if (foundVariable !== undefined) {
+        console.debug(VAR_LOG_PREFIX("getVariable"), `${sanitizedVariable} variable was found`);
+        return foundVariable;
+    } else {
+        console.debug(VAR_LOG_PREFIX("getVariable"), `${sanitizedVariable} variable not found`);
+        return "";
+    }
+}
+
+//+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 /**
  * Replaces banned words in macros with an empty string.
