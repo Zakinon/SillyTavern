@@ -1,4 +1,5 @@
 import { callPopup, eventSource, event_types, saveSettings, saveSettingsDebounced, getRequestHeaders, substituteParams, renderTemplate } from "../script.js";
+import { hideLoader, showLoader } from "./loader.js";
 import { isSubsetOf } from "./utils.js";
 export {
     getContext,
@@ -579,7 +580,7 @@ async function getExtensionData(extension) {
 function getModuleInformation() {
     let moduleInfo = modules.length ? `<p>${DOMPurify.sanitize(modules.join(', '))}</p>` : '<p class="failure">Not connected to the API!</p>';
     return `
-        <h3>Modules provided by your Extensions API:</h3>
+        <h3>Modules provided by your Extras API:</h3>
         ${moduleInfo}
     `;
 }
@@ -588,8 +589,9 @@ function getModuleInformation() {
  * Generates the HTML strings for all extensions and displays them in a popup.
  */
 async function showExtensionsDetails() {
-    let htmlDefault = '<h3>Default Extensions:</h3>';
-    let htmlExternal = '<h3>External Extensions:</h3>';
+    showLoader();
+    let htmlDefault = '<h3>Built-in Extensions:</h3>';
+    let htmlExternal = '<h3>Installed Extensions:</h3>';
 
     const extensions = Object.entries(manifests).sort((a, b) => a[1].loading_order - b[1].loading_order);
     const promises = [];
@@ -616,6 +618,7 @@ async function showExtensionsDetails() {
         ${htmlDefault}
         ${htmlExternal}
     `;
+    hideLoader();
     callPopup(`<div class="extensions_info">${html}</div>`, 'text');
 }
 
@@ -839,17 +842,37 @@ async function autoUpdateExtensions() {
     }
 }
 
+/**
+ * Runs the generate interceptors for all extensions.
+ * @param {any[]} chat Chat array
+ * @param {number} contextSize Context size
+ * @returns {Promise<boolean>} True if generation should be aborted
+ */
 async function runGenerationInterceptors(chat, contextSize) {
+    let aborted = false;
+    let exitImmediately = false;
+
+    const abort = (/** @type {boolean} */ immediately) => {
+        aborted = true;
+        exitImmediately = immediately;
+    };
+
     for (const manifest of Object.values(manifests)) {
         const interceptorKey = manifest.generate_interceptor;
         if (typeof window[interceptorKey] === 'function') {
             try {
-                await window[interceptorKey](chat, contextSize);
+                await window[interceptorKey](chat, contextSize, abort);
             } catch (e) {
                 console.error(`Failed running interceptor for ${manifest.display_name}`, e);
             }
         }
+
+        if (exitImmediately) {
+            break;
+        }
     }
+
+    return aborted;
 }
 
 jQuery(function () {

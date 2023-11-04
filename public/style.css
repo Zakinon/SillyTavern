@@ -1,6 +1,7 @@
 @charset "UTF-8";
 
 @import url(css/promptmanager.css);
+@import url(css/loader.css);
 
 :root {
     --doc-height: 100%;
@@ -217,6 +218,11 @@ table.responsiveTable {
     display: none;
 }
 
+.mes[is_system="true"] .avatar {
+    opacity: 0.9;
+    filter: grayscale(25%);
+}
+
 .mes_text table {
     border-spacing: 0;
     border-collapse: collapse;
@@ -303,8 +309,21 @@ table.responsiveTable {
 
 .mes_translate,
 .sd_message_gen,
+.mes_ghost,
 .mes_narrate {
     display: none;
+}
+
+.mes[is_system="true"] .mes_hide {
+    display: none;
+}
+
+.mes[is_system="false"] .mes_unhide {
+    display: none;
+}
+
+.mes[is_system="true"] .mes_ghost {
+    display: flex;
 }
 
 small {
@@ -945,6 +964,7 @@ select {
 @media screen and (max-width: 1000px) {
     #form_create textarea {
         flex-grow: 1;
+        min-height: 20svh;
     }
 }
 
@@ -964,8 +984,7 @@ select {
     margin-bottom: 0;
 }
 
-#character_cross,
-#select_chat_cross {
+#character_cross {
     position: absolute;
     right: 5px;
     top: 5px;
@@ -1507,11 +1526,7 @@ input[type=search]:focus::-webkit-search-cancel-button {
     background-color: var(--white30a);
 }
 
-/*LEFT SIDE BG MENU*/
-
-#logo_block {
-    z-index: 3001;
-}
+/* BG MENU */
 
 #bg_menu {
     cursor: pointer;
@@ -1953,8 +1968,7 @@ grammarly-extension {
 }
 
 .avatar_div .menu_button,
-.form_create_bottom_buttons_block .menu_button,
-#select_chat_import .menu_button {
+.form_create_bottom_buttons_block .menu_button {
     font-weight: bold;
     padding: 5px;
     margin: 0;
@@ -2281,6 +2295,35 @@ input[type='checkbox']:not(#nav-toggle):not(#rm_button_panel_pin):not(#lm_button
     width: 70px;
 }
 
+.neo-range-input {
+    display: block;
+    cursor: text;
+    background-color: var(--black30a);
+    border: 1px solid var(--SmartThemeBorderColor);
+    border-radius: 0 0 5px 5px;
+    padding: 2px;
+    padding-left: 1em;
+    padding-top: 5px;
+    text-align: center;
+    width: 100%;
+}
+
+.neo-range-slider {
+    -webkit-appearance: none !important;
+    appearance: none !important;
+    margin: 0 !important;
+    margin-top: 7px !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: 5px !important;
+    background: var(--white50a) !important;
+    border-radius: 7px 7px 0 0 !important;
+    background-size: 70% 100% !important;
+    background-repeat: no-repeat !important;
+    box-shadow: inset 0 0 2px black !important;
+    cursor: ew-resize !important;
+}
+
 .range-block-range {
     margin: 0;
     flex: 5;
@@ -2317,22 +2360,23 @@ input[type="range"]::-webkit-slider-thumb {
 
 .note-link-span {
     color: var(--SmartThemeQuoteColor);
-    border: 1px solid var(--SmartThemeQuoteColor);
-    border-radius: 10px;
-    line-height: var(--mainFontSize);
-    font-size: var(--mainFontSize);
-    font-weight: 700;
-    width: calc(var(--mainFontSize) + 0.2rem);
-    height: calc(var(--mainFontSize) + 0.2rem);
     display: inline-block;
     opacity: 0.5;
     margin: 0 5px;
     text-align: center;
+    border-radius: 100%;
     box-shadow: 0 0 3px black;
     transition: all 250ms;
 }
 
-.note-link-span:hover {
+.topRightInset {
+    position: absolute;
+    top: 6px;
+    right: 23px;
+}
+
+.note-link-span:hover,
+.note-link-span-lrg:hover {
     opacity: 1;
 }
 
@@ -2654,30 +2698,18 @@ h5 {
     margin: 0;
 }
 
-#select_chat_import {
-    display: grid;
-    grid-template-columns: min-content auto;
-    align-items: center;
-    grid-gap: 10px;
-    margin-bottom: 10px;
-}
-
-.select_chat_block_wrapper {
+/* .select_chat_block_wrapper {
     display: grid;
     grid-template-columns: auto min-content;
     align-items: center;
     grid-gap: 10px;
-}
+} */
 
 .select_chat_block {
-    border-radius: 10px;
-    margin-top: 10px;
+    border-radius: 5px;
+    margin-top: 5px;
     border: 1px solid var(--SmartThemeBorderColor);
-    padding: 10px;
-    display: grid;
-    grid-template-columns: min-content auto;
-    grid-template-rows: auto auto;
-    grid-gap: 10px;
+    padding: 5px 7px;
 }
 
 .select_chat_block:hover {
@@ -2690,12 +2722,6 @@ h5 {
 
 .select_chat_block .avatar {
     grid-row: span 2;
-}
-
-#select_chat_name_wrapper {
-    display: flex;
-    gap: 5px;
-    flex-wrap: wrap;
 }
 
 .select_chat_block_filename_item {
@@ -2715,16 +2741,6 @@ h5 {
 
 .select_chat_block_mes {
     font-size: calc(var(--mainFontSize) - .25rem);
-}
-
-#select_chat_cross {
-    position: absolute;
-    right: 15px;
-    top: 15px;
-    width: 20px;
-    height: 20px;
-    cursor: pointer;
-    opacity: 0.6;
 }
 
 .PastChat_cross {
@@ -2804,7 +2820,7 @@ body .ui-widget-content li {
     align-items: center;
     cursor: pointer;
     opacity: 0.5;
-    transition: all 200ms;
+    transition: opacity 200ms;
 }
 
 body .ui-widget-content li:hover {
@@ -3081,7 +3097,8 @@ a {
 
 #extensions_settings .inline-drawer-toggle.inline-drawer-header,
 #extensions_settings2 .inline-drawer-toggle.inline-drawer-header,
-#user-settings-block h4 {
+#user-settings-block h4,
+.standoutHeader {
     background-image: linear-gradient(348deg, var(--white30a)2%, var(--grey30a)10%, var(--black70a)95%, var(--SmartThemeQuoteColor)100%);
     margin-bottom: 5px;
     border-radius: 10px;
@@ -3432,9 +3449,6 @@ a {
     flex-wrap: wrap;
 }
 
-#max_context_unlocked_warning {
-    flex-basis: 100%;
-}
 
 #max_context_unlocked:not(:checked)+div {
     display: none;
@@ -3539,8 +3553,8 @@ a {
 .icon-svg {
     fill: currentColor;
     /* Takes on the color of the surrounding text */
-    width: 16px;
-    height: 16px;
+    width: auto;
+    height: 14px;
     vertical-align: middle;
     /* To align with adjacent text */
 }
@@ -3626,22 +3640,6 @@ a {
     text-decoration: underline;
     order: -1;
     cursor: pointer;
-}
-
-#select_chat_search {
-    background-color: transparent;
-    border: none;
-    outline: none;
-    color: var(--SmartThemeBodyColor);
-    display: inline-block;
-    /* Change display to inline-block */
-    vertical-align: middle;
-    /* Align to middle if there's a height discrepancy */
-    width: 200px;
-    font-size: 16px;
-    z-index: 10;
-    margin-left: 10px;
-    /* Give some space between the button and search box */
 }
 
 .draggable img {
